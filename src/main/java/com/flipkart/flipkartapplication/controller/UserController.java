@@ -19,6 +19,10 @@ public class UserController {
         return userService.getAllUsers();
     }
 
+    @GetMapping("/api/users/{id}")
+    public User getUserById(@PathVariable String id){
+        return userService.findUserById(java.util.UUID.fromString(id));
+    }
 
     @PostMapping("/api/users")
     public List<User> createUser(@Valid @RequestBody User user){

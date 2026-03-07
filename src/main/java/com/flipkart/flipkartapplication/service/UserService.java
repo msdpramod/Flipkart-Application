@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -20,6 +21,15 @@ public class UserService {
     public List<User> createUser( User user){
         users.add(user);
         return users;
+    }
+
+    public User findUserById(UUID id){
+        for (User user : users) {
+            if (user.getId().equals(id)) {
+                return user;
+            }
+        }
+        return null;
     }
 
 }
