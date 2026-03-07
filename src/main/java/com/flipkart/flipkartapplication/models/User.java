@@ -1,12 +1,10 @@
 package com.flipkart.flipkartapplication.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
-import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,19 +21,16 @@ public class User {
     @UuidGenerator
     private UUID id;
 
-    @NotBlank
     private String firstName;
 
     private String lastName;
 
-    @Email
     private String email;
 
-    @Pattern(regexp = "\\d{10}")
     private String phone;
 
     @Enumerated(EnumType.STRING)
-    private UserRole role= UserRole.CUSTOMER;
+    private UserRole role;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
@@ -46,4 +41,11 @@ public class User {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        if (role == null) {
+            role = UserRole.CUSTOMER;
+        }
+    }
 }
