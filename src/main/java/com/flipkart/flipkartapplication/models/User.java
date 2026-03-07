@@ -3,21 +3,22 @@ package com.flipkart.flipkartapplication.models;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class User {
 
-    private Long id;
+    private UUID id = UUID.randomUUID();
 
-    @NotBlank(message = "First name is required")
+    @NotBlank
     private String firstName;
 
     private String lastName;
 
-    @Email(message = "Invalid email format")
+    @Email
     private String email;
 
-    @Pattern(regexp = "\\d{10}", message = "Phone must be 10 digits")
+    @Pattern(regexp = "\\d{10}")
     private String phone;
 }
