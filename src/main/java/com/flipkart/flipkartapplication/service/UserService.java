@@ -23,7 +23,7 @@ public class UserService {
         return users;
     }
 
-    public User findUserById(UUID id){
+    public User findUserById(UUID id) {
         for (User user : users) {
             if (user.getId().equals(id)) {
                 return user;

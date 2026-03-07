@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/flipkart")
@@ -15,19 +16,32 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-
     @GetMapping("/api/users")
     public ResponseEntity<List<User>> getAllUsers() {
-        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+
+        List<User> users = userService.getAllUsers();
+
+        if (users == null || users.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/api/users/{id}")
-    public User getUserById(@PathVariable String id){
-        return userService.findUserById(java.util.UUID.fromString(id));
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
+
+        User user = userService.findUserById(UUID.fromString(id));
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(user);
     }
 
     @PostMapping("/api/users")
-    public List<User> createUser(@Valid @RequestBody User user){
-       return userService.createUser(user);
+    public ResponseEntity<List<User>> createUser(@Valid @RequestBody User user) {
+
+        List<User> createdUser = userService.createUser(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 }
