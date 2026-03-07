@@ -1,15 +1,22 @@
 package com.flipkart.flipkartapplication.models;
 
+import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
 public class User {
 
-    private UUID id = UUID.randomUUID();
+    @Id
+    @GeneratedValue
+    @UuidGenerator
+    private UUID id;
 
     @NotBlank
     private String firstName;
