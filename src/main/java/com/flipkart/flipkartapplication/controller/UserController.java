@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -60,7 +62,7 @@ public class UserController {
     @PostMapping("/api/users")
     public ResponseEntity<List<User>> createUser(@Valid @RequestBody User user) {
 
-        List<User> createdUser = userService.createUser(user);
+        List<User> createdUser = (List<User>) Collections.singletonList(userService.createUser(user));
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 }

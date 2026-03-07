@@ -1,42 +1,35 @@
 package com.flipkart.flipkartapplication.service;
 
 import com.flipkart.flipkartapplication.models.User;
+import com.flipkart.flipkartapplication.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
-    List<User> users= new ArrayList<>();
+    private final UserRepository userRepository;
 
-    public List<User> getAllUsers(){
-        return users;
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
 
-
-
-    public List<User> createUser( User user){
-        users.add(user);
-        return users;
+    public User createUser(User user) {
+        return userRepository.save(user);
     }
 
     public Optional<User> findUserById(UUID id) {
-
-        for (User user : users) {
-            if (user.getId().equals(id)) {
-                return Optional.of(user);
-            }
-        }
-
-        return Optional.empty();
+        return userRepository.findById(id);
     }
+
     public Optional<User> updateUser(UUID id, User updatedUser) {
 
-        Optional<User> existingUser = findUserById(id);
+        Optional<User> existingUser = userRepository.findById(id);
 
         if (existingUser.isEmpty()) {
             return Optional.empty();
@@ -49,7 +42,12 @@ public class UserService {
         user.setEmail(updatedUser.getEmail());
         user.setPhone(updatedUser.getPhone());
 
+        userRepository.save(user);
+
         return Optional.of(user);
     }
 
+    public void deleteUser(UUID id) {
+        userRepository.deleteById(id);
+    }
 }
