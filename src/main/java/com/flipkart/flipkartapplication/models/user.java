@@ -1,12 +1,15 @@
 package com.flipkart.flipkartapplication.models;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+
+@Data
 public class user {
+    private Long id;
     private String firstName;
     private String lastName;
     private String email;
+    private String phone;
+
+
 }
