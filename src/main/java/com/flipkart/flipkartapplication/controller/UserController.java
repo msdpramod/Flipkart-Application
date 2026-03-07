@@ -2,6 +2,7 @@ package com.flipkart.flipkartapplication.controller;
 
 import com.flipkart.flipkartapplication.models.User;
 import com.flipkart.flipkartapplication.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -13,10 +14,6 @@ public class UserController {
 
     private final UserService userService;
 
-//    public UserController(UserService userService) {
-//        this.userService = userService;
-//    }
-
     @GetMapping("/api/users")
     public List<User> getAllUsers(){
         return userService.getAllUsers();
@@ -24,7 +21,7 @@ public class UserController {
 
 
     @PostMapping("/api/users")
-    public List<User> createUser(@RequestBody User user){
+    public List<User> createUser(@Valid @RequestBody User user){
        return userService.createUser(user);
     }
 }
