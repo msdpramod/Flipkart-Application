@@ -1,6 +1,6 @@
 package com.flipkart.flipkartapplication.controller;
 
-import org.apache.catalina.User;
+import com.flipkart.flipkartapplication.models.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
