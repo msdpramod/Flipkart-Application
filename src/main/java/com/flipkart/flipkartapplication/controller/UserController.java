@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -28,15 +29,33 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+
     @GetMapping("/api/users/{id}")
     public ResponseEntity<User> getUserById(@PathVariable String id) {
 
-        User user = userService.findUserById(UUID.fromString(id));
-        if (user == null) {
+        Optional<User> user = userService.findUserById(UUID.fromString(id));
+
+        if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(user);
+
+        return ResponseEntity.ok(user.get());
     }
+
+
+    @PutMapping("/api/users/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable String id,
+                                           @Valid @RequestBody User updatedUser) {
+
+        Optional<User> user = userService.updateUser(UUID.fromString(id), updatedUser);
+
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(user.get());
+    }
+
 
     @PostMapping("/api/users")
     public ResponseEntity<List<User>> createUser(@Valid @RequestBody User user) {
