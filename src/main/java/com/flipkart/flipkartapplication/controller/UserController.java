@@ -1,25 +1,30 @@
 package com.flipkart.flipkartapplication.controller;
 
 import com.flipkart.flipkartapplication.models.User;
+import com.flipkart.flipkartapplication.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/flipkart")
+@RequiredArgsConstructor
 public class UserController {
 
-    List<User> users= new ArrayList<>();
+    private final UserService userService;
+
+//    public UserController(UserService userService) {
+//        this.userService = userService;
+//    }
+
     @GetMapping("/api/users")
     public List<User> getAllUsers(){
-        return users;
+        return userService.getAllUsers();
     }
 
 
     @PostMapping("/api/users")
     public List<User> createUser(@RequestBody User user){
-        users.add(user);
-        return users;
+       return userService.createUser(user);
     }
 }
