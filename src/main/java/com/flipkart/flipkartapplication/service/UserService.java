@@ -1,13 +1,13 @@
 package com.flipkart.flipkartapplication.service;
 
+import com.flipkart.flipkartapplication.DTOs.UserRequestDto;
+import com.flipkart.flipkartapplication.DTOs.UserResponseDto;
 import com.flipkart.flipkartapplication.models.User;
 import com.flipkart.flipkartapplication.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -15,19 +15,45 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    // GET all users
+    public List<UserResponseDto> getAllUsers() {
+
+        List<User> users = userRepository.findAll();
+        List<UserResponseDto> responseList = new ArrayList<>();
+
+        for (User user : users) {
+            responseList.add(convertToResponseDto(user));
+        }
+
+        return responseList;
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
+    // CREATE user
+    public UserResponseDto createUser(UserRequestDto requestDto) {
+
+        User user = convertToEntity(requestDto);
+
+        User savedUser = userRepository.save(user);
+
+        return convertToResponseDto(savedUser);
     }
 
-    public Optional<User> findUserById(UUID id) {
-        return userRepository.findById(id);
+    // FIND user by id
+    public Optional<UserResponseDto> findUserById(UUID id) {
+
+        Optional<User> user = userRepository.findById(id);
+
+        if (user.isEmpty()) {
+            return Optional.empty();
+        }
+
+        UserResponseDto responseDto = convertToResponseDto(user.get());
+
+        return Optional.of(responseDto);
     }
 
-    public Optional<User> updateUser(UUID id, User updatedUser) {
+    // UPDATE user
+    public Optional<UserResponseDto> updateUser(UUID id, UserRequestDto requestDto) {
 
         Optional<User> existingUser = userRepository.findById(id);
 
@@ -37,17 +63,55 @@ public class UserService {
 
         User user = existingUser.get();
 
-        user.setFirstName(updatedUser.getFirstName());
-        user.setLastName(updatedUser.getLastName());
-        user.setEmail(updatedUser.getEmail());
-        user.setPhone(updatedUser.getPhone());
+        user.setFirstName(requestDto.getFirstName());
+        user.setLastName(requestDto.getLastName());
+        user.setEmail(requestDto.getEmail());
+        user.setPhone(requestDto.getPhone());
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        return Optional.of(user);
+        UserResponseDto responseDto = convertToResponseDto(savedUser);
+
+        return Optional.of(responseDto);
     }
 
-    public void deleteUser(UUID id) {
+    // DELETE user
+    public boolean deleteUser(UUID id) {
+
+        Optional<User> user = userRepository.findById(id);
+
+        if (user.isEmpty()) {
+            return false;
+        }
+
         userRepository.deleteById(id);
+
+        return true;
+    }
+
+    // Convert RequestDto → Entity
+    private User convertToEntity(UserRequestDto userRequestDto) {
+
+        User user = new User();
+
+        user.setFirstName(userRequestDto.getFirstName());
+        user.setLastName(userRequestDto.getLastName());
+        user.setEmail(userRequestDto.getEmail());
+        user.setPhone(userRequestDto.getPhone());
+
+        return user;
+    }
+
+    // Convert Entity → ResponseDto
+    private UserResponseDto convertToResponseDto(User user) {
+
+        UserResponseDto userResponseDto = new UserResponseDto();
+
+        userResponseDto.setFirstName(user.getFirstName());
+        userResponseDto.setLastName(user.getLastName());
+        userResponseDto.setEmail(user.getEmail());
+        userResponseDto.setPhone(user.getPhone());
+
+        return userResponseDto;
     }
 }

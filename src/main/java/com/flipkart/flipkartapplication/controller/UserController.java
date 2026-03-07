@@ -1,6 +1,7 @@
 package com.flipkart.flipkartapplication.controller;
 
-import com.flipkart.flipkartapplication.models.User;
+import com.flipkart.flipkartapplication.DTOs.UserRequestDto;
+import com.flipkart.flipkartapplication.DTOs.UserResponseDto;
 import com.flipkart.flipkartapplication.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -8,48 +9,33 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
-@RequestMapping("/flipkart")
+@RequestMapping("/flipkart/api/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
-    @GetMapping("/api/users")
-    public ResponseEntity<List<User>> getAllUsers() {
 
-        List<User> users = userService.getAllUsers();
+    // GET all users
+    @GetMapping
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
 
-        if (users == null || users.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        List<UserResponseDto> users = userService.getAllUsers();
+
+        if (users.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
 
         return ResponseEntity.ok(users);
     }
 
+    // GET user by ID
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponseDto> getUserById(@PathVariable UUID id) {
 
-    @GetMapping("/api/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable String id) {
-
-        Optional<User> user = userService.findUserById(UUID.fromString(id));
-
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(user.get());
-    }
-
-
-    @PutMapping("/api/users/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable String id,
-                                           @Valid @RequestBody User updatedUser) {
-
-        Optional<User> user = userService.updateUser(UUID.fromString(id), updatedUser);
+        Optional<UserResponseDto> user = userService.findUserById(id);
 
         if (user.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -58,11 +44,40 @@ public class UserController {
         return ResponseEntity.ok(user.get());
     }
 
+    // CREATE user
+    @PostMapping
+    public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto user) {
 
-    @PostMapping("/api/users")
-    public ResponseEntity<List<User>> createUser(@Valid @RequestBody User user) {
+        UserResponseDto createdUser = userService.createUser(user);
 
-        List<User> createdUser = (List<User>) Collections.singletonList(userService.createUser(user));
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
+
+    // UPDATE user
+    @PutMapping("/{id}")
+    public ResponseEntity<UserResponseDto> updateUser(
+            @PathVariable UUID id,
+            @Valid @RequestBody UserRequestDto updatedUser) {
+
+        Optional<UserResponseDto> user = userService.updateUser(id, updatedUser);
+
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(user.get());
+    }
+
+    // DELETE user
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+
+        boolean deleted = userService.deleteUser(id);
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }
