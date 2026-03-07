@@ -29,4 +29,10 @@ public class User {
 
     @Pattern(regexp = "\\d{10}")
     private String phone;
+
+    private UserRole role= UserRole.CUSTOMER;
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "address_id", referencedColumnName = "id")
+    private Address address;
 }
