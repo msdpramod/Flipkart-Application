@@ -10,7 +10,6 @@ import com.flipkart.flipkartapplication.models.User;
 import com.flipkart.flipkartapplication.repository.CartRepository;
 import com.flipkart.flipkartapplication.repository.OrderRepository;
 import com.flipkart.flipkartapplication.repository.UserRepository;
-import com.flipkart.flipkartapplication.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
