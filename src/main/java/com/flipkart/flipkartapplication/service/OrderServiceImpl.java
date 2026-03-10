@@ -1,12 +1,12 @@
 package com.flipkart.flipkartapplication.service;
 
-import com.flipkart.flipkartapplication.DTOs.CartItemResponseDto;
+import com.flipkart.flipkartapplication.DTOs.AddressDto;
 import com.flipkart.flipkartapplication.DTOs.OrderRequestDto;
 import com.flipkart.flipkartapplication.DTOs.OrderResponseDto;
-import com.flipkart.flipkartapplication.models.Cart;
-import com.flipkart.flipkartapplication.models.CartItem;
-import com.flipkart.flipkartapplication.models.Order;
-import com.flipkart.flipkartapplication.models.User;
+import com.flipkart.flipkartapplication.exception.BadRequestException;
+import com.flipkart.flipkartapplication.exception.ResourceNotFoundException;
+import com.flipkart.flipkartapplication.mapper.OrderMapper;
+import com.flipkart.flipkartapplication.models.*;
 import com.flipkart.flipkartapplication.repository.CartRepository;
 import com.flipkart.flipkartapplication.repository.OrderRepository;
 import com.flipkart.flipkartapplication.repository.UserRepository;
@@ -14,11 +14,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,110 +31,124 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderResponseDto placeOrder(UUID userId, OrderRequestDto orderRequestDto) {
 
+        // 1. Fetch user
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
+        // 2. Validate cart is not empty
         Cart cart = user.getCart();
         if (cart == null || cart.getItems().isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new BadRequestException("Cannot place order — cart is empty");
         }
 
-        Order order = new Order();
-        order.setUser(user);
-        order.setStatus(com.flipkart.flipkartapplication.models.OrderStatus.PENDING);
-        order.setCreatedAt(LocalDateTime.now());
-        order.setUpdatedAt(LocalDateTime.now());
-        order.setTotalAmount(0.0);
-        order.setItems(new ArrayList<>());
-        order.setUser(user);
-        order.setTotalAmount(0.0);
-        order.setItems(new ArrayList<>());
-        order.setUser(user);
-
+        // 3. Build OrderItems as snapshots of cart items at time of purchase
+        List<OrderItem> orderItems = new ArrayList<>();
         double total = 0.0;
-        List<CartItemResponseDto> orderItemsDto = new ArrayList<>();
 
-        for (CartItem item : cart.getItems()) {
-            order.getItems().add(item);
+        for (CartItem cartItem : cart.getItems()) {
+            Product product = cartItem.getProduct();
 
-            CartItemResponseDto dto = new CartItemResponseDto();
-            dto.setId(item.getId());
-            dto.setProductId(item.getProduct().getId());
-            dto.setProductName(item.getProduct().getName());
-            dto.setPrice(item.getProduct().getPrice());
-            dto.setQuantity(item.getQuantity());
-            dto.setActive(item.isActive());
-            dto.setCreatedAt(item.getCreatedAt());
-            dto.setUpdatedAt(item.getUpdatedAt());
-            orderItemsDto.add(dto);
+            // validate stock before placing order
+            if (product.getStockQuantity() < cartItem.getQuantity()) {
+                throw new BadRequestException("Insufficient stock for product: " + product.getName()
+                        + ". Available: " + product.getStockQuantity());
+            }
 
-            total += item.getProduct().getPrice().doubleValue() * item.getQuantity();
+            OrderItem orderItem = OrderItem.builder()
+                    .productId(product.getId())
+                    .productName(product.getName())
+                    .priceAtPurchase(product.getPrice())   // snapshot — not a live reference
+                    .quantity(cartItem.getQuantity())
+                    .build();
+
+            orderItems.add(orderItem);
+            total += product.getPrice().doubleValue() * cartItem.getQuantity();
+
+            // deduct stock
+            product.setStockQuantity(product.getStockQuantity() - cartItem.getQuantity());
         }
 
-        order.setTotalAmount(total);
+        // 4. Build shipping address snapshot
+        AddressDto addressDto = orderRequestDto.getShippingAddress();
+        Address shippingAddress = Address.builder()
+                .street(addressDto.getStreet())
+                .city(addressDto.getCity())
+                .state(addressDto.getState())
+                .country(addressDto.getCountry())
+                .zipcode(addressDto.getZipcode())
+                .build();
 
-        // clear cart after order
-        cart.getItems().clear();
-        cartRepository.save(cart);
+        // 5. Build and save order
+        Order order = Order.builder()
+                .user(user)
+                .items(orderItems)
+                .shippingAddress(shippingAddress)
+                .totalAmount(total)
+                .orderNotes(orderRequestDto.getOrderNotes())
+                .status(OrderStatus.PENDING)
+                .build();
 
         Order savedOrder = orderRepository.save(order);
 
-        return mapToResponseDto(savedOrder, orderItemsDto);
+        // 6. Clear cart after successful order
+        List<CartItem> itemsCopy = new ArrayList<>(cart.getItems());
+        for (CartItem item : itemsCopy) {
+            cart.removeItem(item);
+        }
+        cartRepository.save(cart);
+
+        return OrderMapper.toResponseDto(savedOrder);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponseDto> getAllOrders() {
-        List<Order> orders = orderRepository.findAll();
-        List<OrderResponseDto> response = new ArrayList<>();
-        for (Order order : orders) {
-            response.add(mapToResponseDto(order, null));
-        }
-        return response;
+        return orderRepository.findAll()
+                .stream()
+                .map(OrderMapper::toResponseDto)
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponseDto> getOrdersByUser(UUID userId) {
-        List<Order> orders = orderRepository.findByUserId(userId);
-        List<OrderResponseDto> response = new ArrayList<>();
-        for (Order order : orders) {
-            response.add(mapToResponseDto(order, null));
-        }
-        return response;
+        userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        return orderRepository.findByUserId(userId)
+                .stream()
+                .map(OrderMapper::toResponseDto)
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderResponseDto getOrderById(UUID orderId) {
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
-        if (orderOpt.isEmpty()) {
-            throw new RuntimeException("Order not found");
-        }
-        return mapToResponseDto(orderOpt.get(), null);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+        return OrderMapper.toResponseDto(order);
     }
 
     @Override
     public OrderResponseDto updateOrderStatus(UUID orderId, String status) {
-        Optional<Order> orderOpt = orderRepository.findById(orderId);
-        if (orderOpt.isEmpty()) {
-            throw new RuntimeException("Order not found");
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
+
+        // Validate that the status string maps to a valid enum value
+        OrderStatus newStatus;
+        try {
+            newStatus = OrderStatus.valueOf(status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("Invalid order status: " + status);
         }
 
-        Order order = orderOpt.get();
-        order.setStatus(com.flipkart.flipkartapplication.models.OrderStatus.valueOf(status));
-        order.setUpdatedAt(LocalDateTime.now());
+        // Prevent updating a cancelled or delivered order
+        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.DELIVERED) {
+            throw new BadRequestException("Cannot update status of a " + order.getStatus().name().toLowerCase() + " order");
+        }
 
+        order.setStatus(newStatus);
         Order updated = orderRepository.save(order);
-        return mapToResponseDto(updated, null);
-    }
-
-    private OrderResponseDto mapToResponseDto(Order order, List<CartItemResponseDto> itemsDto) {
-        OrderResponseDto dto = new OrderResponseDto();
-        dto.setId(order.getId());
-        dto.setUserId(order.getUser().getId());
-        dto.setItems(itemsDto != null ? itemsDto : new ArrayList<>());
-        dto.setTotalAmount(order.getTotalAmount());
-        dto.setStatus(order.getStatus().name());
-        dto.setCreatedAt(order.getCreatedAt());
-        dto.setUpdatedAt(order.getUpdatedAt());
-        return dto;
+        return OrderMapper.toResponseDto(updated);
     }
 }

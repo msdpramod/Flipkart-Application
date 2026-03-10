@@ -4,23 +4,22 @@ import com.flipkart.flipkartapplication.DTOs.ProductRequestDto;
 import com.flipkart.flipkartapplication.DTOs.ProductResponseDto;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductService {
 
-    // CREATE
+    // Create a new product
     ProductResponseDto createProduct(ProductRequestDto productRequestDto);
 
-    // READ ALL
+    // Get all active products
     List<ProductResponseDto> getAllProducts();
 
-    // READ BY ID
-    Optional<ProductResponseDto> getProductById(UUID id);
+    // Get product by ID
+    ProductResponseDto getProductById(UUID id);
 
-    // UPDATE
-    Optional<ProductResponseDto> updateProduct(UUID id, ProductRequestDto productRequestDto);
+    // Update product details
+    ProductResponseDto updateProduct(UUID id, ProductRequestDto productRequestDto);
 
-    // DELETE
-    boolean deleteProduct(UUID id);
+    // Soft delete — marks product inactive instead of removing from DB
+    void deleteProduct(UUID id);
 }

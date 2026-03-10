@@ -10,76 +10,49 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/flipkart/api/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    // GET all users
+    // Get all users
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
-
         List<UserResponseDto> users = userService.getAllUsers();
-
-        if (users == null || users.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-
         return ResponseEntity.ok(users);
     }
 
-    // GET user by ID
+    // Get user by ID
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable UUID id) {
-
-        Optional<UserResponseDto> user = userService.findUserById(id);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(user.get());
+        UserResponseDto user = userService.findUserById(id);
+        return ResponseEntity.ok(user);
     }
 
-    // CREATE user
+    // Create user
     @PostMapping
     public ResponseEntity<UserResponseDto> createUser(@Valid @RequestBody UserRequestDto user) {
-
         UserResponseDto createdUser = userService.createUser(user);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    // UPDATE user
+    // Update user
     @PutMapping("/{id}")
     public ResponseEntity<UserResponseDto> updateUser(
             @PathVariable UUID id,
             @Valid @RequestBody UserRequestDto updatedUser) {
-
-        Optional<UserResponseDto> user = userService.updateUser(id, updatedUser);
-
-        if (user.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(user.get());
+        UserResponseDto user = userService.updateUser(id, updatedUser);
+        return ResponseEntity.ok(user);
     }
 
-    // DELETE user
+    // Delete user
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-
-        boolean deleted = userService.deleteUser(id);
-
-        if (!deleted) {
-            return ResponseEntity.notFound().build();
-        }
-
+        userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 }

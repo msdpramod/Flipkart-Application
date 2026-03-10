@@ -4,7 +4,9 @@ import com.flipkart.flipkartapplication.DTOs.CartItemRequestDto;
 import com.flipkart.flipkartapplication.DTOs.CartItemResponseDto;
 import com.flipkart.flipkartapplication.service.CartItemService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,7 +25,7 @@ public class CartItemController {
             @PathVariable UUID userId,
             @Valid @RequestBody CartItemRequestDto requestDto) {
         CartItemResponseDto response = cartItemService.addItem(userId, requestDto);
-        return ResponseEntity.status(201).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     // Update cart item quantity
@@ -31,7 +33,7 @@ public class CartItemController {
     public ResponseEntity<CartItemResponseDto> updateItem(
             @PathVariable UUID userId,
             @PathVariable UUID cartItemId,
-            @RequestParam int quantity) {
+            @RequestParam @Min(1) int quantity) {
         CartItemResponseDto response = cartItemService.updateItem(userId, cartItemId, quantity);
         return ResponseEntity.ok(response);
     }
@@ -41,11 +43,7 @@ public class CartItemController {
     public ResponseEntity<Void> removeItem(
             @PathVariable UUID userId,
             @PathVariable UUID cartItemId) {
-        boolean removed = cartItemService.removeItem(userId, cartItemId);
-        if (removed) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        cartItemService.removeItem(userId, cartItemId);
+        return ResponseEntity.noContent().build();
     }
 }

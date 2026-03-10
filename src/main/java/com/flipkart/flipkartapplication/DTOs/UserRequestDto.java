@@ -1,19 +1,19 @@
 package com.flipkart.flipkartapplication.DTOs;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class UserRequestDto {
-
-    private UUID id;
 
     @NotBlank(message = "First name is required")
     private String firstName;
@@ -26,7 +26,9 @@ public class UserRequestDto {
     private String email;
 
     @NotBlank(message = "Phone number is required")
+    @Pattern(regexp = "^[0-9]{10}$", message = "Phone number must be 10 digits")
     private String phone;
 
-    private AddressDto addressDto; // corrected camelCase
+    @Valid  // triggers nested validation on AddressDto fields
+    private AddressDto address;
 }

@@ -23,7 +23,6 @@ public class ProductResponseDto {
     private String category;
     private String imageUrl;
     private boolean isActive;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

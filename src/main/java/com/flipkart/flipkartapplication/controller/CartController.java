@@ -26,11 +26,7 @@ public class CartController {
     // Clear user's cart
     @DeleteMapping("/{userId}/clear")
     public ResponseEntity<Void> clearCart(@PathVariable UUID userId) {
-        boolean cleared = cartService.clearCart(userId);
-        if (cleared) {
-            return ResponseEntity.noContent().build();
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        cartService.clearCart(userId);
+        return ResponseEntity.noContent().build();
     }
 }

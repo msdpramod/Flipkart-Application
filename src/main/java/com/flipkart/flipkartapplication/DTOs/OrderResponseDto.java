@@ -19,8 +19,9 @@ public class OrderResponseDto {
     private UUID userId;
     private List<CartItemResponseDto> items;
     private Double totalAmount;
-    private String status; // PENDING, PROCESSING, etc.
+    private String status;          // PENDING, PROCESSING, SHIPPED, DELIVERED, CANCELLED
     private String orderNotes;
+    private AddressDto shippingAddress;   // where order is being delivered
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

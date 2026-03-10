@@ -10,6 +10,6 @@ public interface CartService {
     // Get all items in a user's cart
     List<CartItemResponseDto> getCartItems(UUID userId);
 
-    // Clear cart
+    // Clear all items from a user's cart
     boolean clearCart(UUID userId);
 }

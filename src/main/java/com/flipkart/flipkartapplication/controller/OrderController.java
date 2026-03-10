@@ -19,43 +19,41 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // CREATE / PLACE ORDER
+    // Place a new order
     @PostMapping("/user/{userId}")
     public ResponseEntity<OrderResponseDto> placeOrder(
             @PathVariable UUID userId,
             @Valid @RequestBody OrderRequestDto orderRequestDto) {
-
         OrderResponseDto response = orderService.placeOrder(userId, orderRequestDto);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // GET ALL ORDERS
+    // Get all orders (admin use)
     @GetMapping
     public ResponseEntity<List<OrderResponseDto>> getAllOrders() {
         List<OrderResponseDto> orders = orderService.getAllOrders();
         return ResponseEntity.ok(orders);
     }
 
-    // GET ORDERS BY USER
+    // Get orders for a specific user
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<OrderResponseDto>> getOrdersByUser(@PathVariable UUID userId) {
         List<OrderResponseDto> orders = orderService.getOrdersByUser(userId);
         return ResponseEntity.ok(orders);
     }
 
-    // GET ORDER BY ID
+    // Get a single order by ID
     @GetMapping("/{orderId}")
     public ResponseEntity<OrderResponseDto> getOrderById(@PathVariable UUID orderId) {
         OrderResponseDto response = orderService.getOrderById(orderId);
         return ResponseEntity.ok(response);
     }
 
-    // UPDATE ORDER STATUS
-    @PutMapping("/{orderId}/status")
+    // Update order status
+    @PatchMapping("/{orderId}/status")
     public ResponseEntity<OrderResponseDto> updateOrderStatus(
             @PathVariable UUID orderId,
             @RequestParam String status) {
-
         OrderResponseDto response = orderService.updateOrderStatus(orderId, status);
         return ResponseEntity.ok(response);
     }

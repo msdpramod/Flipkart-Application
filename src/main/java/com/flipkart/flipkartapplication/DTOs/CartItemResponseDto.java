@@ -15,11 +15,12 @@ import java.util.UUID;
 @Builder
 public class CartItemResponseDto {
 
-    private UUID id; // cart item id
+    private UUID id;           // cart item id
     private UUID productId;
     private String productName;
     private BigDecimal price;
     private int quantity;
+    private BigDecimal totalPrice;  // price * quantity — computed field
     private boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
